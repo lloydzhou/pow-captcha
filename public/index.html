@@ -127,5 +127,11 @@
       return false;
     }
   </script>
+  <script src="/sdk.js"></script>
+  <script>
+    window.POW().then(function(token) {
+      console.log('POWCaptcha token:', token);
+    });
+  </script>
 </body>
 </html>

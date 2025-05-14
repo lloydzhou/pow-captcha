@@ -11,7 +11,8 @@ RUN cd /app && make
 
 FROM openresty/openresty:${RESTY_TAG}
 
-COPY public/pow.min.js public/sdk.js public/index.html /var/www/html/
+COPY public/pow.min.js public/index.html /var/www/html/
+COPY public/sdk.min.js /var/www/html/sdk.js
 COPY src/challenge.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/powmodule.so /app/powmodule.so
 COPY --from=builder /usr/bin/redis-server /usr/bin/redis-server

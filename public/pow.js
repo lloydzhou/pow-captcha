@@ -29,7 +29,6 @@
     }
     if (prefix) {        
         const workerScript = `${sha256.toString()}${solvePOW.toString()}self.onmessage=e=>self.postMessage(${solvePOW.name}.apply(null, e.data));`
-        console.log(workerScript)
         const blob = new Blob([workerScript], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(blob);
         const worker = new Worker(workerUrl);

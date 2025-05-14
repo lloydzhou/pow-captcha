@@ -1,3 +1,4 @@
+// terser public/sdk.js -m --mangle-props > public/sdk.min.js
 (function() {
     const scripts = document.getElementsByTagName('script');
     const currentScript = scripts[scripts.length - 1];

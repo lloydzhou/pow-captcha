@@ -3,134 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>工作量证明验证码演示</title>
-  <script src="/pow-captcha.js"></script>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    h1 {
-      color: #333;
-    }
-    form {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    input[type="text"],
-    input[type="email"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    button {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .captcha-container {
-      margin: 20px 0;
-    }
-    .info-box {
-      background: #f0f0f0;
-      border-left: 4px solid #2196F3;
-      padding: 10px 15px;
-      margin: 15px 0;
-    }
-  </style>
+  <title>POWCaptcha DEMO</title>
 </head>
 <body>
-  <h1>工作量证明验证码演示</h1>
-  
-  <div class="info-box">
-    <p>这种验证码基于<strong>计算复杂度不对称</strong>原理：</p>
-    <ul>
-      <li>前端需要通过CPU密集型计算找到特定哈希值（消耗资源）</li>
-      <li>后端可以快速验证结果（低成本验证）</li>
-      <li>对单个用户几乎无感知，但对批量机器人造成巨大计算负担</li>
-    </ul>
-  </div>
-
-  <form id="demoForm" onsubmit="return validateForm()">
-    <div class="form-group">
-      <label for="username">用户名</label>
-      <input type="text" id="username" name="username" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="email">邮箱</label>
-      <input type="email" id="email" name="email" required>
-    </div>
-    
-    <div class="form-group captcha-container">
-      <label>验证</label>
-      <div id="pow-captcha"></div>
-    </div>
-    
-    <button type="submit">提交</button>
-  </form>
-  
-  <div id="result"></div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // 初始化PoW验证码
-      POWCaptcha.init({
-        selector: '#pow-captcha',
-        difficulty: 4,  // 4是一个平衡的值，大约需要2-5秒计算
-        onSuccess: function(token) {
-          console.log('验证成功，令牌:', token);
-        },
-        onError: function(error) {
-          console.error('验证错误:', error);
-        },
-        onProgress: function(progress) {
-          console.log('计算进度:', progress);
-        }
-      });
-    });
-    
-    function validateForm() {
-      const token = POWCaptcha.getToken();
-      
-      if (!token) {
-        alert('请先完成验证码验证');
-        return false;
-      }
-      
-      // 显示提交结果（实际应用中应提交到服务器）
-      document.getElementById('result').innerHTML = `
-        <div class="info-box">
-          <h3>表单验证成功</h3>
-          <p><strong>用户名:</strong> ${document.getElementById('username').value}</p>
-          <p><strong>邮箱:</strong> ${document.getElementById('email').value}</p>
-          <p><strong>验证令牌:</strong> ${token.substring(0, 20)}...</p>
-        </div>
-      `;
-      
-      // 阻止表单提交，仅用于演示
-      return false;
-    }
-  </script>
   <script src="/sdk.js"></script>
   <script>
     window.POW().then(function(token) {
       console.log('POWCaptcha token:', token);
+      document.write(`<h3>Get POWCaptcha token: ${token}</h3>`);
       window.open('/token?token=' + token, '_blank');
     });
   </script>

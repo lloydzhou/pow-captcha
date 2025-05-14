@@ -1,0 +1,20 @@
+ARG RESTY_TAG="1.25.3.1-alpine"
+FROM openresty/openresty:${RESTY_TAG} AS builder
+
+
+RUN apk add --no-cache musl-dev gcc make git openssl-dev libuuid util-linux-dev redis
+
+ADD --chown=redis src /app
+
+RUN cd /app && make
+
+
+FROM openresty/openresty:${RESTY_TAG}
+
+COPY public/pow.min.js public/sdk.js public/index.html /var/www/html/
+COPY src/challenge.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/powmodule.so /app/powmodule.so
+COPY --from=builder /usr/bin/redis-server /usr/bin/redis-server
+
+ENTRYPOINT ["/bin/sh", "-c" , "nginx && redis-server --loadmodule /app/powmodule.so --port 6379 --daemonize no --bind 0.0.0.0 --protected-mode no"]
+

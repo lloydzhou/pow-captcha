@@ -48,8 +48,8 @@ $(MODULE_SO): redismodule.h $(SOURCES)
 	$(CC) $(CFLAGS) $(SHOBJ_CFLAGS) $(INCLUDE) -o $@ $(SOURCES) $(LDFLAGS) $(SHOBJ_LDFLAGS) $(LIBS)
 
 # 测试
-test:
-	redis-server --loadmodule ./$(MODULE_SO) --port 6379 --daemonize no
+test: $(MODULE_SO)
+	redis-server --loadmodule ./$(MODULE_SO) --port 6379 --daemonize no --bind 0.0.0.0 --protected-mode no
 
 # 安装模块
 install: $(MODULE_SO)

@@ -131,6 +131,7 @@
   <script>
     window.POW().then(function(token) {
       console.log('POWCaptcha token:', token);
+      window.open('/token?token=' + token, '_blank');
     });
   </script>
 </body>

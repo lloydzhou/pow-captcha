@@ -23,12 +23,10 @@ static void generateRandomHex(char *hex, size_t length) {
 }
 
 // SHA-256哈希函数
-static void sha256(const char *input, char *output) {
+static void sha256(const char *input, size_t input_len, char *output) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, input, strlen(input));
-    SHA256_Final(hash, &sha256);
+    // Use the simpler one-step SHA256 function with explicit length
+    SHA256((unsigned char*)input, input_len, hash);
 
     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
         sprintf(output + (i * 2), "%02x", hash[i]);
@@ -61,7 +59,7 @@ int POWChallenge_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int
     if (difficulty > 6) difficulty = 6;
     
     // 创建挑战ID和前缀
-    RedisModule_Log(ctx, "notice", "POWChallenge: Creating challenge with difficulty %lld", difficulty);
+    // RedisModule_Log(ctx, "notice", "POWChallenge: Creating challenge with difficulty %lld", difficulty);
     
     char challenge_id[37];
     generateUUID(challenge_id);
@@ -157,7 +155,7 @@ int POWChallenge_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int
     RedisModule_ReplyWithLongLong(ctx, difficulty);
     RedisModule_ReplyWithLongLong(ctx, timestamp);
     
-    RedisModule_Log(ctx, "notice", "POWChallenge: Challenge created successfully: %s", challenge_id);
+    // RedisModule_Log(ctx, "notice", "POWChallenge: Challenge created successfully: %s", challenge_id);
     return REDISMODULE_OK;
 }
 
@@ -177,7 +175,7 @@ int POWVerify_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int ar
         return RedisModule_ReplyWithError(ctx, "ERR invalid input parameters");
     }
     
-    RedisModule_Log(ctx, "notice", "POWVerify: Verifying challenge %s", challenge_id);
+    // RedisModule_Log(ctx, "notice", "POWVerify: Verifying challenge %s", challenge_id);
     
     // 创建挑战键名
     RedisModuleString *key_name = RedisModule_CreateStringPrintf(ctx, "pow:challenge:%s", challenge_id);
@@ -195,9 +193,9 @@ int POWVerify_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int ar
     }
     RedisModule_FreeCallReply(reply);
 
-    RedisModule_Log(ctx, "notice", "POWVerify: Challenge %s found", challenge_id);
+    // RedisModule_Log(ctx, "notice", "POWVerify: Challenge %s found", challenge_id);
 
-    RedisModule_Log(ctx, "notice", "POWVerify: Challenge data retrieved successfully");
+    // RedisModule_Log(ctx, "notice", "POWVerify: Challenge data retrieved successfully");
     RedisModuleCallReply *prefix_reply = RedisModule_Call(ctx, "HGET", "sc", key_name, "prefix");
     RedisModuleCallReply *difficulty_reply = RedisModule_Call(ctx, "HGET", "sc", key_name, "difficulty");
     RedisModuleCallReply *timestamp_reply = RedisModule_Call(ctx, "HGET", "sc", key_name, "timestamp");
@@ -214,11 +212,14 @@ int POWVerify_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int ar
         return RedisModule_ReplyWithError(ctx, "ERR invalid challenge data");
     }
 
-    RedisModule_Log(ctx, "notice", "POWVerify: Challenge data retrieved successfully");
+    // RedisModule_Log(ctx, "notice", "POWVerify: Challenge data retrieved successfully");
     
     // 获取字段值
+    // size_t prefix_len;
+    // const char *prefix = RedisModule_CallReplyStringPtr(prefix_reply, &prefix_len);
+    RedisModuleString *prefix_str = RedisModule_CreateStringFromCallReply(prefix_reply);
     size_t prefix_len;
-    const char *prefix = RedisModule_CallReplyStringPtr(prefix_reply, &prefix_len);
+    const char *prefix = RedisModule_StringPtrLen(prefix_str, &prefix_len);
     
     long long difficulty = 0, timestamp = 0;
     RedisModuleString *difficulty_str = RedisModule_CreateStringFromCallReply(difficulty_reply);
@@ -236,7 +237,7 @@ int POWVerify_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int ar
         return RedisModule_ReplyWithError(ctx, "ERR invalid numeric values");
     }
 
-    RedisModule_Log(ctx, "notice", "POWVerify: Parsed difficulty: %lld, timestamp: %lld", difficulty, timestamp);
+    // RedisModule_Log(ctx, "notice", "POWVerify: Parsed difficulty: %lld, timestamp: %lld", difficulty, timestamp);
     
     // 检查挑战是否过期
     time_t current_time = time(NULL);
@@ -263,11 +264,11 @@ int POWVerify_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int ar
     
     // 结合前缀和nonce
     char combined[256];
-    snprintf(combined, sizeof(combined), "%s%s", prefix, nonce_str);
+    size_t combined_len = snprintf(combined, sizeof(combined), "%s%s", prefix, nonce_str);
     
     // 计算哈希
     char computed_hash[65];
-    sha256(combined, computed_hash);
+    sha256(combined, combined_len, computed_hash);
     
     // 释放不再需要的资源
     RedisModule_FreeCallReply(prefix_reply);
@@ -285,7 +286,7 @@ int POWVerify_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int ar
     
     char token[37];
     generateUUID(token);
-    RedisModule_Log(ctx, "notice", "POWVerify: Token generated: %s", token);    
+    // RedisModule_Log(ctx, "notice", "POWVerify: Token generated: %s", token);    
     // 删除挑战，防止重用
     reply = RedisModule_Call(ctx, "DEL", "s", key_name);
     RedisModule_FreeCallReply(reply);
@@ -321,11 +322,9 @@ int POWVerify_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int ar
     RedisModule_FreeString(ctx, token_key);
     
     // 返回成功和令牌
-    RedisModule_ReplyWithArray(ctx, 2);
-    RedisModule_ReplyWithSimpleString(ctx, "OK");
     RedisModule_ReplyWithStringBuffer(ctx, token, strlen(token));
     
-    RedisModule_Log(ctx, "notice", "POWVerify: Challenge %s verified successfully", challenge_id);
+    // RedisModule_Log(ctx, "notice", "POWVerify: Challenge %s verified successfully", challenge_id);
     return REDISMODULE_OK;
 }
 
@@ -343,7 +342,7 @@ int POWCheckToken_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, in
         return RedisModule_ReplyWithError(ctx, "ERR invalid token");
     }
     
-    RedisModule_Log(ctx, "notice", "POWCheckToken: Checking token: %.*s", (int)token_len, token);
+    // RedisModule_Log(ctx, "notice", "POWCheckToken: Checking token: %.*s", (int)token_len, token);
     
     // 使用Redis命令API代替直接访问键
     RedisModuleString *token_key = RedisModule_CreateStringPrintf(ctx, "pow:token:%s", token);

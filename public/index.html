@@ -7,12 +7,18 @@
 </head>
 <body>
   <script src="/sdk.js"></script>
+  <div id="log"></div>
   <script>
     window.POW().then(function(token) {
       console.log('POWCaptcha token:', token);
-      document.write(`<h3>Get POWCaptcha token: ${token}</h3>`);
+      document.getElementById('log').innerHTML = `<h3>POWCaptcha token: ${token}</h3>`;
       window.open('/token?token=' + token, '_blank');
     });
+    function callback() {
+      console.log('callback', arguments)
+    }
   </script>
+  <div class="pow-captcha" data-callback="callback" data-error-callback="callback"></div>
+  <div class="pow-captcha" data-callback="callback" data-error-callback="callback"></div>
 </body>
 </html>

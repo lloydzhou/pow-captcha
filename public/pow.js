@@ -41,7 +41,7 @@
     if (token) {
         (window.opener || window.parent).postMessage({
             type: 'pow',
-            token: token,
+            token,
         }, '*');
     }
 })();

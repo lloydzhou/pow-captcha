@@ -18,7 +18,8 @@
       console.log('callback', arguments)
     }
   </script>
-  <div class="pow-captcha" data-callback="callback" data-error-callback="callback"></div>
+  <div id="pow-captcha1" data-callback="callback" data-error-callback="callback"></div>
+  <script>window.POW.render(document.querySelector('#pow-captcha1'));</script>
   <div class="pow-captcha" data-callback="callback" data-error-callback="callback"></div>
 </body>
 </html>
